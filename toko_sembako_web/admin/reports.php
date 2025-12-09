@@ -6,71 +6,36 @@ if (!isLoggedIn() || !isAdmin()) {
     exit;
 }
 
-// Get filter
-$filter_bulan = isset($_GET['bulan']) ? $_GET['bulan'] : date('m');
-$filter_tahun = isset($_GET['tahun']) ? $_GET['tahun'] : date('Y');
+// ================== FILTER BULAN & TAHUN ==================
+$filter_bulan = isset($_GET['bulan']) ? (int)$_GET['bulan'] : (int)date('m');
+$filter_tahun = isset($_GET['tahun']) ? (int)$_GET['tahun'] : (int)date('Y');
 
-// Laporan Penjualan
-$query_penjualan = "SELECT 
-                        DATE(tanggal) as tgl,
-                        COUNT(*) as total_transaksi,
-                        SUM(total_bayar) as total_pendapatan,
-                        SUM(total_item) as total_item_terjual
-                    FROM transaksi_penjualan
-                    WHERE MONTH(tanggal) = $filter_bulan 
-                    AND YEAR(tanggal) = $filter_tahun
-                    AND status = 'selesai'
-                    GROUP BY DATE(tanggal)
-                    ORDER BY tanggal DESC";
-$result_penjualan = mysqli_query($conn, $query_penjualan);
+$filter_bulan_str = sprintf('%02d', $filter_bulan);
 
-// Summary bulan ini
-$query_summary = "SELECT 
-                    COUNT(*) as total_transaksi,
-                    SUM(total_bayar) as total_pendapatan,
-                    AVG(total_bayar) as rata_rata_transaksi
-                 FROM transaksi_penjualan
-                 WHERE MONTH(tanggal) = $filter_bulan
-                 AND YEAR(tanggal) = $filter_tahun
-                 AND status = 'selesai'";
-$summary = mysqli_fetch_assoc(mysqli_query($conn, $query_summary));
+// RENTANG TANGGAL UNTUK PROCEDURE
+$tgl_mulai   = $filter_tahun . '-' . $filter_bulan_str . '-01';
+$tgl_selesai = date('Y-m-t', strtotime($tgl_mulai));
 
-// Produk Terlaris
-$query_terlaris = "SELECT 
-                    p.nama_produk,
-                    p.merk,
-                    k.nama_kategori,
-                    COUNT(dt.id_detail) as total_terjual,
-                    SUM(dt.jumlah) as total_qty,
-                    SUM(dt.subtotal) as total_pendapatan
-                FROM detail_transaksi dt
-                JOIN produk p ON dt.id_produk = p.id_produk
-                JOIN kategori_barang k ON p.id_kategori = k.id_kategori
-                JOIN transaksi_penjualan t ON dt.id_transaksi = t.id_transaksi
-                WHERE MONTH(t.tanggal) = $filter_bulan
-                AND YEAR(t.tanggal) = $filter_tahun
-                AND t.status = 'selesai'
-                GROUP BY dt.id_produk
-                ORDER BY total_qty DESC
-                LIMIT 10";
-$result_terlaris = mysqli_query($conn, $query_terlaris);
+// ================== STORED PROCEDURE: DETAIL TRANSAKSI PERIODE ==================
+$stmt_penjualan = mysqli_prepare($conn, "CALL sp_laporan_penjualan_periode(?, ?)");
+if (!$stmt_penjualan) {
+    die('Gagal prepare procedure: '.mysqli_error($conn));
+}
+mysqli_stmt_bind_param($stmt_penjualan, 'ss', $tgl_mulai, $tgl_selesai);
+mysqli_stmt_execute($stmt_penjualan);
+$result_penjualan = mysqli_stmt_get_result($stmt_penjualan);
+if (!$result_penjualan) {
+    die('Gagal ambil hasil procedure: '.mysqli_error($conn));
+}
 
-// Laporan per Kategori
-$query_kategori = "SELECT 
-                    k.nama_kategori,
-                    COUNT(DISTINCT dt.id_transaksi) as total_transaksi,
-                    SUM(dt.jumlah) as total_qty,
-                    SUM(dt.subtotal) as total_pendapatan
-                FROM detail_transaksi dt
-                JOIN produk p ON dt.id_produk = p.id_produk
-                JOIN kategori_barang k ON p.id_kategori = k.id_kategori
-                JOIN transaksi_penjualan t ON dt.id_transaksi = t.id_transaksi
-                WHERE MONTH(t.tanggal) = $filter_bulan
-                AND YEAR(t.tanggal) = $filter_tahun
-                AND t.status = 'selesai'
-                GROUP BY k.id_kategori
-                ORDER BY total_pendapatan DESC";
-$result_kategori = mysqli_query($conn, $query_kategori);
+// >>> JANGAN jalankan query lain sebelum HTML.
+// Query lain (summary, terlaris, kategori) ditaruh SETELAH kita selesai baca $result_penjualan.
+
+// Nama bulan untuk tampilan
+$bulan_nama = [
+    'Januari','Februari','Maret','April','Mei','Juni',
+    'Juli','Agustus','September','Oktober','November','Desember'
+];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -167,156 +132,237 @@ $result_kategori = mysqli_query($conn, $query_kategori);
     </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <a href="dashboard.php" class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-shopping-basket"></i>
-                </div>
-                <span>Admin Panel</span>
-            </a>
+<header>
+    <nav class="navbar">
+        <a href="dashboard.php" class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-shopping-basket"></i>
+            </div>
+            <span>Admin Panel</span>
+        </a>
 
-            <ul class="nav-menu">
-                <li><a href="../index.php">Lihat Website</a></li>
-                <li><a href="#"><?= $_SESSION['nama_lengkap'] ?></a></li>
-                <li><a href="../customer/logout.php" class="btn-primary">Logout</a></li>
-            </ul>
-        </nav>
-    </header>
+        <ul class="nav-menu">
+            <li><a href="../index.php">Lihat Website</a></li>
+            <li><a href="#"><?= $_SESSION['nama_lengkap'] ?></a></li>
+            <li><a href="../customer/logout.php" class="btn-primary">Logout</a></li>
+        </ul>
+    </nav>
+</header>
 
-    <div class="admin-layout">
-        <aside class="sidebar">
-            <ul class="sidebar-menu">
-                <li><a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="products.php"><i class="fas fa-box"></i> Produk</a></li>
-                <li><a href="categories.php"><i class="fas fa-tags"></i> Kategori</a></li>
-                <li><a href="transactions.php"><i class="fas fa-receipt"></i> Transaksi</a></li>
-                <li><a href="customers.php"><i class="fas fa-users"></i> Pelanggan</a></li>
-                <li><a href="stock.php"><i class="fas fa-warehouse"></i> Stok</a></li>
-                <li><a href="reports.php" class="active"><i class="fas fa-chart-bar"></i> Laporan</a></li>
-                <li><a href="users.php"><i class="fas fa-user-shield"></i> Users</a></li>
-            </ul>
-        </aside>
+<div class="admin-layout">
+    <aside class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="products.php"><i class="fas fa-box"></i> Produk</a></li>
+            <li><a href="categories.php"><i class="fas fa-tags"></i> Kategori</a></li>
+            <li><a href="transactions.php"><i class="fas fa-receipt"></i> Transaksi</a></li>
+            <li><a href="customers.php"><i class="fas fa-users"></i> Pelanggan</a></li>
+            <li><a href="stock.php"><i class="fas fa-warehouse"></i> Stok</a></li>
+            <li><a href="reports.php" class="active"><i class="fas fa-chart-bar"></i> Laporan</a></li>
+            <li><a href="users.php"><i class="fas fa-user-shield"></i> Users</a></li>
+        </ul>
+    </aside>
 
-        <main class="main-content">
-            <h1 style="margin-bottom: 2rem;"><i class="fas fa-chart-bar"></i> Laporan Penjualan</h1>
+    <main class="main-content">
+        <h1 style="margin-bottom: 2rem;"><i class="fas fa-chart-bar"></i> Laporan Penjualan</h1>
 
-            <!-- FILTER -->
-            <div class="card fade-in">
-                <form method="GET" class="filter-form">
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Bulan</label>
-                        <select name="bulan">
-                            <?php 
-                            $bulan_nama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-                            for($i=1; $i<=12; $i++): 
-                            ?>
-                            <option value="<?= sprintf('%02d', $i) ?>" <?= $filter_bulan == sprintf('%02d', $i) ? 'selected' : '' ?>>
+        <!-- FILTER -->
+        <div class="card fade-in">
+            <form method="GET" class="filter-form">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Bulan</label>
+                    <select name="bulan">
+                        <?php for($i=1; $i<=12; $i++): ?>
+                            <option value="<?= sprintf('%02d', $i) ?>" <?= $filter_bulan == $i ? 'selected' : '' ?>>
                                 <?= $bulan_nama[$i-1] ?>
                             </option>
-                            <?php endfor; ?>
-                        </select>
-                    </div>
+                        <?php endfor; ?>
+                    </select>
+                </div>
 
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Tahun</label>
-                        <select name="tahun">
-                            <?php for($y=2024; $y<=2026; $y++): ?>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Tahun</label>
+                    <select name="tahun">
+                        <?php for($y=2024; $y<=2026; $y++): ?>
                             <option value="<?= $y ?>" <?= $filter_tahun == $y ? 'selected' : '' ?>><?= $y ?></option>
-                            <?php endfor; ?>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn-secondary">
-                        <i class="fas fa-filter"></i> Filter
-                    </button>
-                </form>
-            </div>
-
-            <!-- SUMMARY -->
-            <div class="stats-grid fade-in-up">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: var(--light-green); color: var(--primary-green);">
-                        <i class="fas fa-receipt"></i>
-                    </div>
-                    <h3>Total Transaksi</h3>
-                    <div class="stat-value"><?= $summary['total_transaksi'] ?? 0 ?></div>
+                        <?php endfor; ?>
+                    </select>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #e0e7ff; color: #6366f1;">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </div>
-                    <h3>Total Pendapatan</h3>
-                    <div class="stat-value" style="font-size: 1.3rem;"><?= formatRupiah($summary['total_pendapatan'] ?? 0) ?></div>
-                </div>
+                <button type="submit" class="btn-secondary">
+                    <i class="fas fa-filter"></i> Filter
+                </button>
+            </form>
+        </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #dbeafe; color: #3b82f6;">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3>Rata-rata Transaksi</h3>
-                    <div class="stat-value" style="font-size: 1.2rem;"><?= formatRupiah($summary['rata_rata_transaksi'] ?? 0) ?></div>
-                </div>
-            </div>
+        <!-- DETAIL TRANSAKSI (HASIL STORED PROCEDURE) -->
+        <div class="card fade-in-up">
+            <h2 style="margin-bottom: 1.5rem;">
+                <i class="fas fa-calendar-day"></i>
+                Detail Transaksi - <?= $bulan_nama[$filter_bulan-1] ?> <?= $filter_tahun ?>
+            </h2>
 
-            <!-- LAPORAN HARIAN -->
-            <div class="card fade-in-up">
-                <h2 style="margin-bottom: 1.5rem;">
-                    <i class="fas fa-calendar-day"></i> Laporan Harian - 
-                    <?= $bulan_nama[$filter_bulan-1] ?> <?= $filter_tahun ?>
-                </h2>
-
-                <?php if (mysqli_num_rows($result_penjualan) > 0): ?>
+            <?php if (mysqli_num_rows($result_penjualan) > 0): ?>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th>Total Transaksi</th>
-                                <th>Total Item Terjual</th>
-                                <th>Total Pendapatan</th>
-                            </tr>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Kode</th>
+                            <th>Pelanggan</th>
+                            <th>Kasir</th>
+                            <th>Total Item</th>
+                            <th>Total Bayar</th>
+                            <th>Metode</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            <?php while($lap = mysqli_fetch_assoc($result_penjualan)): ?>
+                        <?php while($lap = mysqli_fetch_assoc($result_penjualan)): ?>
                             <tr>
-                                <td><?= date('d/m/Y', strtotime($lap['tgl'])) ?></td>
-                                <td><?= $lap['total_transaksi'] ?> transaksi</td>
-                                <td><?= $lap['total_item_terjual'] ?> item</td>
-                                <td><strong><?= formatRupiah($lap['total_pendapatan']) ?></strong></td>
+                                <td><?= date('d/m/Y', strtotime($lap['tanggal'])) ?></td>
+                                <td><?= $lap['kode_transaksi'] ?></td>
+                                <td><?= $lap['nama_pelanggan'] ?: 'Umum' ?></td>
+                                <td><?= $lap['kasir'] ?></td>
+                                <td><?= $lap['total_item'] ?> item</td>
+                                <td><strong><?= formatRupiah($lap['total_bayar']) ?></strong></td>
+                                <td><?= strtoupper($lap['metode_bayar']) ?></td>
                             </tr>
-                            <?php endwhile; ?>
+                        <?php endwhile; ?>
                         </tbody>
                     </table>
                 </div>
-                <?php else: ?>
-                <p style="text-align: center; padding: 2rem; color: var(--text-gray);">Belum ada transaksi di bulan ini</p>
-                <?php endif; ?>
+            <?php else: ?>
+                <p style="text-align: center; padding: 2rem; color: var(--text-gray);">
+                    Belum ada transaksi di bulan ini
+                </p>
+            <?php endif; ?>
+        </div>
+
+<?php
+// ================== SELESAI PAKAI PROCEDURE: BERSIHKAN RESULT ==================
+mysqli_free_result($result_penjualan);
+mysqli_stmt_close($stmt_penjualan);
+while (mysqli_more_results($conn) && mysqli_next_result($conn)) {
+    // buang result set sisa kalau ada
+    if ($extra = mysqli_store_result($conn)) {
+        mysqli_free_result($extra);
+    }
+}
+// ==============================================================================
+
+// ================== QUERY LAIN SETELAH PROCEDURE BERES ==================
+
+// SUMMARY BULAN INI
+$query_summary = "
+    SELECT 
+        COUNT(*)           AS total_transaksi,
+        SUM(total_bayar)   AS total_pendapatan,
+        AVG(total_bayar)   AS rata_rata_transaksi
+    FROM transaksi_penjualan
+    WHERE MONTH(tanggal) = $filter_bulan
+      AND YEAR(tanggal)  = $filter_tahun
+      AND status = 'selesai'
+";
+$res_summary = mysqli_query($conn, $query_summary);
+if (!$res_summary) {
+    die('Error summary: '.mysqli_error($conn));
+}
+$summary = mysqli_fetch_assoc($res_summary);
+
+// PRODUK TERLARIS
+$query_terlaris = "
+    SELECT 
+        p.nama_produk,
+        p.merk,
+        k.nama_kategori,
+        COUNT(dt.id_detail) AS total_terlaris,
+        SUM(dt.jumlah)      AS total_qty,
+        SUM(dt.subtotal)    AS total_pendapatan
+    FROM detail_transaksi dt
+    JOIN produk p          ON dt.id_produk = p.id_produk
+    JOIN kategori_barang k ON p.id_kategori = k.id_kategori
+    JOIN transaksi_penjualan t ON dt.id_transaksi = t.id_transaksi
+    WHERE MONTH(t.tanggal) = $filter_bulan
+      AND YEAR(t.tanggal)  = $filter_tahun
+      AND t.status = 'selesai'
+    GROUP BY dt.id_produk
+    ORDER BY total_qty DESC
+    LIMIT 10
+";
+$result_terlaris = mysqli_query($conn, $query_terlaris);
+if (!$result_terlaris) {
+    die('Error terlaris: '.mysqli_error($conn));
+}
+
+// LAPORAN PER KATEGORI
+$query_kategori = "
+    SELECT 
+        k.nama_kategori,
+        COUNT(DISTINCT dt.id_transaksi) AS total_transaksi,
+        SUM(dt.jumlah)                  AS total_qty,
+        SUM(dt.subtotal)                AS total_pendapatan
+    FROM detail_transaksi dt
+    JOIN produk p          ON dt.id_produk = p.id_produk
+    JOIN kategori_barang k ON p.id_kategori = k.id_kategori
+    JOIN transaksi_penjualan t ON dt.id_transaksi = t.id_transaksi
+    WHERE MONTH(t.tanggal) = $filter_bulan
+      AND YEAR(t.tanggal)  = $filter_tahun
+      AND t.status = 'selesai'
+    GROUP BY k.id_kategori
+    ORDER BY total_pendapatan DESC
+";
+$result_kategori = mysqli_query($conn, $query_kategori);
+if (!$result_kategori) {
+    die('Error kategori: '.mysqli_error($conn));
+}
+?>
+
+        <!-- SUMMARY -->
+        <div class="stats-grid fade-in-up">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: var(--light-green); color: var(--primary-green);">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <h3>Total Transaksi</h3>
+                <div class="stat-value"><?= $summary['total_transaksi'] ?? 0 ?></div>
             </div>
 
-            <!-- PRODUK TERLARIS -->
-            <div class="card fade-in-up">
-                <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-trophy"></i> Top 10 Produk Terlaris</h2>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #e0e7ff; color: #6366f1;">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <h3>Total Pendapatan</h3>
+                <div class="stat-value" style="font-size: 1.3rem;"><?= formatRupiah($summary['total_pendapatan'] ?? 0) ?></div>
+            </div>
 
-                <?php if (mysqli_num_rows($result_terlaris) > 0): ?>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #dbeafe; color: #3b82f6;">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Rata-rata Transaksi</h3>
+                <div class="stat-value" style="font-size: 1.2rem;"><?= formatRupiah($summary['rata_rata_transaksi'] ?? 0) ?></div>
+            </div>
+        </div>
+
+        <!-- PRODUK TERLARIS -->
+        <div class="card fade-in-up">
+            <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-trophy"></i> Top 10 Produk Terlaris</h2>
+
+            <?php if (mysqli_num_rows($result_terlaris) > 0): ?>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Produk</th>
-                                <th>Merk</th>
-                                <th>Kategori</th>
-                                <th>Total Terjual</th>
-                                <th>Pendapatan</th>
-                            </tr>
+                        <tr>
+                            <th>#</th>
+                            <th>Produk</th>
+                            <th>Merk</th>
+                            <th>Kategori</th>
+                            <th>Total Terjual</th>
+                            <th>Pendapatan</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            <?php 
-                            $no = 1;
-                            while($prod = mysqli_fetch_assoc($result_terlaris)): 
-                            ?>
+                        <?php $no = 1; while($prod = mysqli_fetch_assoc($result_terlaris)): ?>
                             <tr>
                                 <td><?= $no++ ?></td>
                                 <td><?= $prod['nama_produk'] ?></td>
@@ -325,49 +371,53 @@ $result_kategori = mysqli_query($conn, $query_kategori);
                                 <td><strong><?= $prod['total_qty'] ?> unit</strong></td>
                                 <td><?= formatRupiah($prod['total_pendapatan']) ?></td>
                             </tr>
-                            <?php endwhile; ?>
+                        <?php endwhile; ?>
                         </tbody>
                     </table>
                 </div>
-                <?php else: ?>
-                <p style="text-align: center; padding: 2rem; color: var(--text-gray);">Belum ada data penjualan produk</p>
-                <?php endif; ?>
-            </div>
+            <?php else: ?>
+                <p style="text-align: center; padding: 2rem; color: var(--text-gray);">
+                    Belum ada data penjualan produk
+                </p>
+            <?php endif; ?>
+        </div>
 
-            <!-- LAPORAN PER KATEGORI -->
-            <div class="card fade-in-up">
-                <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-tags"></i> Penjualan per Kategori</h2>
+        <!-- LAPORAN PER KATEGORI -->
+        <div class="card fade-in-up">
+            <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-tags"></i> Penjualan per Kategori</h2>
 
-                <?php if (mysqli_num_rows($result_kategori) > 0): ?>
+            <?php if (mysqli_num_rows($result_kategori) > 0): ?>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
-                            <tr>
-                                <th>Kategori</th>
-                                <th>Total Transaksi</th>
-                                <th>Total Qty Terjual</th>
-                                <th>Total Pendapatan</th>
-                            </tr>
+                        <tr>
+                            <th>Kategori</th>
+                            <th>Total Transaksi</th>
+                            <th>Total Qty Terjual</th>
+                            <th>Total Pendapatan</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            <?php while($kat = mysqli_fetch_assoc($result_kategori)): ?>
+                        <?php while($kat = mysqli_fetch_assoc($result_kategori)): ?>
                             <tr>
                                 <td><strong><?= $kat['nama_kategori'] ?></strong></td>
                                 <td><?= $kat['total_transaksi'] ?> transaksi</td>
                                 <td><?= $kat['total_qty'] ?> unit</td>
                                 <td><strong><?= formatRupiah($kat['total_pendapatan']) ?></strong></td>
                             </tr>
-                            <?php endwhile; ?>
+                        <?php endwhile; ?>
                         </tbody>
                     </table>
                 </div>
-                <?php else: ?>
-                <p style="text-align: center; padding: 2rem; color: var(--text-gray);">Belum ada data penjualan kategori</p>
-                <?php endif; ?>
-            </div>
-        </main>
-    </div>
+            <?php else: ?>
+                <p style="text-align: center; padding: 2rem; color: var(--text-gray);">
+                    Belum ada data penjualan kategori
+                </p>
+            <?php endif; ?>
+        </div>
+    </main>
+</div>
 
-    <script src="../assets/js/main.js"></script>
+<script src="../assets/js/main.js"></script>
 </body>
 </html>

@@ -7,48 +7,69 @@ if (!isLoggedIn() || !isAdmin()) {
 }
 
 // Handle form submit
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['add_stock'])) {
-        $id_produk = $_POST['id_produk'];
-        $jumlah = $_POST['jumlah'];
-        $harga_beli = $_POST['harga_beli'];
-        $keterangan = mysqli_real_escape_string($conn, $_POST['keterangan']);
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_stock'])) {
+    $id_produk   = (int)$_POST['id_produk'];
+    $jumlah      = (int)$_POST['jumlah'];
+    $harga_beli  = (float)$_POST['harga_beli'];
+    $keterangan  = mysqli_real_escape_string($conn, $_POST['keterangan']);
 
-        // Insert stok masuk
-        $query = "INSERT INTO stok_masuk (tanggal, total_item, total_harga, keterangan) 
-                  VALUES (CURDATE(), $jumlah, " . ($jumlah * $harga_beli) . ", '$keterangan')";
-        mysqli_query($conn, $query);
-        $id_stok = mysqli_insert_id($conn);
+    // Insert stok_masuk
+    $total_harga = $jumlah * $harga_beli;
+    $sqlStok = "INSERT INTO stok_masuk (tanggal, total_item, total_harga, keterangan)
+                VALUES (CURDATE(), ?, ?, ?)";
+    $stmtStok = mysqli_prepare($conn, $sqlStok);
+    mysqli_stmt_bind_param($stmtStok, 'ids', $jumlah, $total_harga, $keterangan);
+    mysqli_stmt_execute($stmtStok);
+    $id_stok = mysqli_insert_id($conn);
+    mysqli_stmt_close($stmtStok);
 
-        // Insert detail
-        $query_detail = "INSERT INTO detail_stok_masuk (id_stok_masuk, id_produk, jumlah, harga_beli) 
-                        VALUES ($id_stok, $id_produk, $jumlah, $harga_beli)";
-        mysqli_query($conn, $query_detail);
+    // Insert detail_stok_masuk
+    $sqlDetail = "INSERT INTO detail_stok_masuk (id_stok_masuk, id_produk, jumlah, harga_beli, subtotal)
+                  VALUES (?,?,?,?,?)";
+    $subtotal = $jumlah * $harga_beli;
+    $stmtDetail = mysqli_prepare($conn, $sqlDetail);
+    mysqli_stmt_bind_param($stmtDetail, 'iiidd', $id_stok, $id_produk, $jumlah, $harga_beli, $subtotal);
+    mysqli_stmt_execute($stmtDetail);
+    mysqli_stmt_close($stmtDetail);
 
-        // Update stok produk
-        $query_update = "UPDATE produk SET stok = stok + $jumlah WHERE id_produk = $id_produk";
-        mysqli_query($conn, $query_update);
+    // Update stok produk
+    $sqlUpdate = "UPDATE produk SET stok = stok + ? WHERE id_produk = ?";
+    $stmtUpdate = mysqli_prepare($conn, $sqlUpdate);
+    mysqli_stmt_bind_param($stmtUpdate, 'ii', $jumlah, $id_produk);
+    mysqli_stmt_execute($stmtUpdate);
+    mysqli_stmt_close($stmtUpdate);
 
-        $success = "Stok berhasil ditambahkan!";
-    }
+    $success = "Stok berhasil ditambahkan!";
 }
 
 // Get low stock products
 $query_low = "SELECT * FROM v_stok_menipis ORDER BY stok ASC";
 $result_low = mysqli_query($conn, $query_low);
+if ($result_low === false) {
+    $error_low = mysqli_error($conn);
+}
 
 // Get recent stock movements
-$query_recent = "SELECT sm.*, COUNT(d.id_detail) as total_item
+$query_recent = "SELECT sm.*, COUNT(d.id_detail_masuk) AS total_item
                  FROM stok_masuk sm
                  LEFT JOIN detail_stok_masuk d ON sm.id_stok_masuk = d.id_stok_masuk
                  GROUP BY sm.id_stok_masuk
                  ORDER BY sm.tanggal DESC
                  LIMIT 10";
 $result_recent = mysqli_query($conn, $query_recent);
+if ($result_recent === false) {
+    $error_recent = mysqli_error($conn);
+}
 
 // Get all products for dropdown
-$query_products = "SELECT id_produk, nama_produk, stok FROM produk WHERE status = 'aktif' ORDER BY nama_produk";
+$query_products = "SELECT id_produk, nama_produk, stok
+                   FROM produk
+                   WHERE status = 'aktif'
+                   ORDER BY nama_produk";
 $result_products = mysqli_query($conn, $query_products);
+if ($result_products === false) {
+    $error_products = mysqli_error($conn);
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -193,11 +214,13 @@ $result_products = mysqli_query($conn, $query_products);
                             <label for="id_produk">Produk</label>
                             <select id="id_produk" name="id_produk" required>
                                 <option value="">-- Pilih Produk --</option>
-                                <?php while($prod = mysqli_fetch_assoc($result_products)): ?>
-                                <option value="<?= $prod['id_produk'] ?>">
-                                    <?= $prod['nama_produk'] ?> (Stok: <?= $prod['stok'] ?>)
-                                </option>
-                                <?php endwhile; ?>
+                                <?php if ($result_products && mysqli_num_rows($result_products) > 0): ?>
+                                    <?php while($prod = mysqli_fetch_assoc($result_products)): ?>
+                                    <option value="<?= $prod['id_produk'] ?>">
+                                        <?= htmlspecialchars($prod['nama_produk']) ?> (Stok: <?= $prod['stok'] ?>)
+                                    </option>
+                                    <?php endwhile; ?>
+                                <?php endif; ?>
                             </select>
                         </div>
 
@@ -227,7 +250,9 @@ $result_products = mysqli_query($conn, $query_products);
             <div class="card fade-in-up">
                 <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-exclamation-triangle"></i> Stok Menipis</h2>
 
-                <?php if (mysqli_num_rows($result_low) > 0): ?>
+                <?php if (isset($error_low)): ?>
+                    <p style="color:red;">Error query stok menipis: <?= htmlspecialchars($error_low) ?></p>
+                <?php elseif ($result_low && mysqli_num_rows($result_low) > 0): ?>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -244,12 +269,12 @@ $result_products = mysqli_query($conn, $query_products);
                         <tbody>
                             <?php while($item = mysqli_fetch_assoc($result_low)): ?>
                             <tr>
-                                <td><?= $item['kode_produk'] ?></td>
-                                <td><?= $item['nama_produk'] ?></td>
-                                <td><?= $item['nama_kategori'] ?></td>
+                                <td><?= htmlspecialchars($item['kode_produk']) ?></td>
+                                <td><?= htmlspecialchars($item['nama_produk']) ?></td>
+                                <td><?= htmlspecialchars($item['nama_kategori']) ?></td>
                                 <td><strong><?= $item['stok'] ?></strong></td>
                                 <td><?= $item['stok_minimum'] ?></td>
-                                <td><?= $item['nama_satuan'] ?></td>
+                                <td><?= htmlspecialchars($item['nama_satuan']) ?></td>
                                 <td>
                                     <?php if ($item['stok'] == 0): ?>
                                         <span class="badge badge-danger">Habis</span>
@@ -274,7 +299,9 @@ $result_products = mysqli_query($conn, $query_products);
             <div class="card fade-in-up">
                 <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-history"></i> Riwayat Stok Masuk</h2>
 
-                <?php if (mysqli_num_rows($result_recent) > 0): ?>
+                <?php if (isset($error_recent)): ?>
+                    <p style="color:red;">Error query riwayat stok: <?= htmlspecialchars($error_recent) ?></p>
+                <?php elseif ($result_recent && mysqli_num_rows($result_recent) > 0): ?>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -291,7 +318,7 @@ $result_products = mysqli_query($conn, $query_products);
                                 <td><?= date('d/m/Y', strtotime($stock['tanggal'])) ?></td>
                                 <td><?= $stock['total_item'] ?> item</td>
                                 <td><?= formatRupiah($stock['total_harga']) ?></td>
-                                <td><?= $stock['keterangan'] ?></td>
+                                <td><?= htmlspecialchars($stock['keterangan']) ?></td>
                             </tr>
                             <?php endwhile; ?>
                         </tbody>

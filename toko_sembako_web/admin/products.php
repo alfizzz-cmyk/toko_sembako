@@ -6,105 +6,137 @@ if (!isLoggedIn() || !isAdmin()) {
     exit;
 }
 
-// Handle Delete
-if (isset($_GET['delete'])) {
-    $id = (int)$_GET['delete'];
-    mysqli_query($conn, "UPDATE produk SET status = 'nonaktif' WHERE id_produk = $id");
-    header('Location: products.php?msg=deleted');
-    exit;
+// Filter berdasarkan kategori atau harga
+$filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
+$kategori_filter = isset($_GET['kategori']) ? (int)$_GET['kategori'] : 0;
+
+// Query produk dengan filter
+if ($filter == 'mahal') {
+    // SUBQUERY: produk dengan harga di atas rata-rata kategorinya
+    $query = "
+        SELECT p.*, k.nama_kategori, s.nama_satuan
+        FROM produk p
+        JOIN kategori_barang k ON p.id_kategori = k.id_kategori
+        JOIN satuan_barang s ON p.id_satuan = s.id_satuan
+        WHERE p.harga_jual > (
+            SELECT AVG(p2.harga_jual)
+            FROM produk p2
+            WHERE p2.id_kategori = p.id_kategori
+        )
+        AND p.status = 'aktif'
+        ORDER BY p.harga_jual DESC
+    ";
+} elseif ($kategori_filter > 0) {
+    $query = "
+        SELECT p.*, k.nama_kategori, s.nama_satuan
+        FROM produk p
+        JOIN kategori_barang k ON p.id_kategori = k.id_kategori
+        JOIN satuan_barang s ON p.id_satuan = s.id_satuan
+        WHERE p.id_kategori = $kategori_filter
+        AND p.status = 'aktif'
+        ORDER BY p.nama_produk
+    ";
+} else {
+    $query = "
+        SELECT p.*, k.nama_kategori, s.nama_satuan
+        FROM produk p
+        JOIN kategori_barang k ON p.id_kategori = k.id_kategori
+        JOIN satuan_barang s ON p.id_satuan = s.id_satuan
+        WHERE p.status = 'aktif'
+        ORDER BY p.nama_produk
+    ";
 }
 
-// Handle Form Submit (Add/Edit)
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nama_produk = mysqli_real_escape_string($conn, $_POST['nama_produk']);
-    $kode_produk = mysqli_real_escape_string($conn, $_POST['kode_produk']);
-    $id_kategori = (int)$_POST['id_kategori'];
-    $id_satuan = (int)$_POST['id_satuan'];
-    $harga_beli = (int)$_POST['harga_beli'];
-    $harga_jual = (int)$_POST['harga_jual'];
-    $stok = (int)$_POST['stok'];
-    $stok_minimum = (int)$_POST['stok_minimum'];
-    $merk = mysqli_real_escape_string($conn, $_POST['merk']);
-    $deskripsi = mysqli_real_escape_string($conn, $_POST['deskripsi']);
+$result = mysqli_query($conn, $query);
+$total_produk = mysqli_num_rows($result);
 
-    if (isset($_POST['id_produk']) && $_POST['id_produk']) {
-        // Update
-        $id = (int)$_POST['id_produk'];
-        $query = "UPDATE produk SET 
-                  nama_produk='$nama_produk', kode_produk='$kode_produk',
-                  id_kategori=$id_kategori, id_satuan=$id_satuan,
-                  harga_beli=$harga_beli, harga_jual=$harga_jual,
-                  stok=$stok, stok_minimum=$stok_minimum,
-                  merk='$merk', deskripsi='$deskripsi'
-                  WHERE id_produk=$id";
-        mysqli_query($conn, $query);
-        header('Location: products.php?msg=updated');
-    } else {
-        // Insert
-        $query = "INSERT INTO produk (nama_produk, kode_produk, id_kategori, id_satuan, 
-                  harga_beli, harga_jual, stok, stok_minimum, merk, deskripsi, status)
-                  VALUES ('$nama_produk', '$kode_produk', $id_kategori, $id_satuan,
-                  $harga_beli, $harga_jual, $stok, $stok_minimum, '$merk', '$deskripsi', 'aktif')";
-        mysqli_query($conn, $query);
-        header('Location: products.php?msg=added');
-    }
-    exit;
-}
-
-// Get product for edit
-$edit_product = null;
-if (isset($_GET['edit'])) {
-    $id = (int)$_GET['edit'];
-    $result = mysqli_query($conn, "SELECT * FROM produk WHERE id_produk = $id");
-    $edit_product = mysqli_fetch_assoc($result);
-}
-
-// Get all products
-$search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
-$query = "SELECT p.*, k.nama_kategori, s.nama_satuan 
-          FROM produk p
-          JOIN kategori_barang k ON p.id_kategori = k.id_kategori
-          JOIN satuan_barang s ON p.id_satuan = s.id_satuan
-          WHERE p.status = 'aktif'";
-if ($search) {
-    $query .= " AND (p.nama_produk LIKE '%$search%' OR p.kode_produk LIKE '%$search%')";
-}
-$query .= " ORDER BY p.nama_produk";
-$result_products = mysqli_query($conn, $query);
-
-// Get categories & units for dropdown
-$result_categories = mysqli_query($conn, "SELECT * FROM kategori_barang ORDER BY nama_kategori");
-$result_units = mysqli_query($conn, "SELECT * FROM satuan_barang ORDER BY nama_satuan");
+// Ambil kategori untuk dropdown
+$kategori_list = mysqli_query($conn, "SELECT * FROM kategori_barang ORDER BY nama_kategori");
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen Produk - Admin</title>
+    <title>Kelola Produk - Admin</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .admin-layout{display:flex;min-height:calc(100vh - 70px)}
-        .sidebar{width:250px;background:linear-gradient(180deg,var(--primary-green),var(--dark-green));padding:2rem 0;color:var(--white)}
-        .sidebar-menu{list-style:none}
-        .sidebar-menu li a{display:block;padding:1rem 2rem;color:var(--white);text-decoration:none;transition:all .3s ease;border-left:3px solid transparent}
-        .sidebar-menu li a:hover,.sidebar-menu li a.active{background:rgba(255,255,255,.1);border-left-color:var(--white)}
-        .main-content{flex:1;padding:2rem;background:var(--bg-light)}
-        .card{background:var(--white);border-radius:15px;padding:1.5rem;box-shadow:var(--shadow);margin-bottom:1.5rem}
-        .form-group{margin-bottom:1rem}
-        .form-group label{display:block;color:var(--text-dark);font-weight:600;margin-bottom:.5rem}
-        .form-group input,.form-group select,.form-group textarea{width:100%;padding:.8rem;border:2px solid #e5e7eb;border-radius:10px;font-size:1rem}
-        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary-green)}
-        table{width:100%;border-collapse:collapse}
-        th{background:var(--light-green);color:var(--text-dark);padding:.8rem;text-align:left;font-weight:600}
-        td{padding:.8rem;border-bottom:1px solid #e5e7eb}
-        tr:hover{background:var(--bg-light)}
-        .btn-action{padding:.5rem 1rem;border-radius:8px;text-decoration:none;font-size:.9rem;margin:0 .2rem}
-        .btn-edit{background:var(--light-green);color:var(--primary-green)}
-        .btn-delete{background:#fee2e2;color:#dc2626}
-        .alert{padding:1rem;border-radius:10px;margin-bottom:1rem}
-        .alert-success{background:var(--light-green);color:var(--dark-green);border:1px solid var(--primary-green)}
+        .admin-layout { display: flex; min-height: calc(100vh - 70px); }
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, var(--primary-green), var(--dark-green));
+            padding: 2rem 0;
+            color: var(--white);
+        }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li a {
+            display: block;
+            padding: 1rem 2rem;
+            color: var(--white);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-menu li a:hover, .sidebar-menu li a.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: var(--white);
+        }
+        .main-content { flex: 1; padding: 2rem; background: var(--bg-light); }
+        .card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .filter-bar select, .filter-bar a {
+            padding: 0.8rem 1.2rem;
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+        .filter-bar a:hover, .filter-bar a.active {
+            background: var(--primary-green);
+            color: white;
+            border-color: var(--primary-green);
+        }
+        .filter-bar a.active {
+            background: var(--dark-green);
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: var(--light-green);
+            color: var(--text-dark);
+            padding: 0.8rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        td { padding: 0.8rem; border-bottom: 1px solid #e5e7eb; }
+        tr:hover { background: var(--bg-light); }
+        .badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .badge-premium {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .badge-normal {
+            background: #dbeafe;
+            color: #1e40af;
+        }
     </style>
 </head>
 <body>
@@ -116,11 +148,12 @@ $result_units = mysqli_query($conn, "SELECT * FROM satuan_barang ORDER BY nama_s
             </a>
             <ul class="nav-menu">
                 <li><a href="../index.php">Lihat Website</a></li>
-                <li><a href="#"><?=$_SESSION['nama_lengkap']?></a></li>
+                <li><a href="#"><?= $_SESSION['nama_lengkap'] ?></a></li>
                 <li><a href="../customer/logout.php" class="btn-primary">Logout</a></li>
             </ul>
         </nav>
     </header>
+
     <div class="admin-layout">
         <aside class="sidebar">
             <ul class="sidebar-menu">
@@ -134,112 +167,105 @@ $result_units = mysqli_query($conn, "SELECT * FROM satuan_barang ORDER BY nama_s
                 <li><a href="users.php"><i class="fas fa-user-shield"></i> Users</a></li>
             </ul>
         </aside>
+
         <main class="main-content">
-            <h1 style="margin-bottom:2rem"><i class="fas fa-box"></i> Manajemen Produk</h1>
-            <?php if(isset($_GET['msg'])): ?>
-            <div class="alert alert-success">
-                <?php if($_GET['msg']=='added'):?>✅ Produk berhasil ditambahkan!<?php endif;?>
-                <?php if($_GET['msg']=='updated'):?>✅ Produk berhasil diupdate!<?php endif;?>
-                <?php if($_GET['msg']=='deleted'):?>✅ Produk berhasil dihapus!<?php endif;?>
+            <h1 style="margin-bottom: 2rem;">
+                <i class="fas fa-box"></i> Kelola Produk
+            </h1>
+
+            <!-- FILTER BAR -->
+            <div class="filter-bar">
+                <a href="products.php" class="<?= $filter == 'all' ? 'active' : '' ?>">
+                    <i class="fas fa-th"></i> Semua Produk (<?= $total_produk ?>)
+                </a>
+                <a href="products.php?filter=mahal" class="<?= $filter == 'mahal' ? 'active' : '' ?>">
+                    <i class="fas fa-crown"></i> Produk Premium
+                </a>
+                
+                <select onchange="if(this.value) window.location='products.php?kategori='+this.value" style="margin-left:auto;">
+                    <option value="">Filter Kategori</option>
+                    <?php while($kat = mysqli_fetch_assoc($kategori_list)): ?>
+                    <option value="<?= $kat['id_kategori'] ?>" <?= $kategori_filter == $kat['id_kategori'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($kat['nama_kategori']) ?>
+                    </option>
+                    <?php endwhile; ?>
+                </select>
             </div>
-            <?php endif;?>
+
+            <?php if ($filter == 'mahal'): ?>
+            <div class="card" style="background:#fef3c7;border-left:4px solid #d97706;">
+                <p style="margin:0;">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Filter Produk Premium:</strong> Menampilkan produk dengan harga di atas rata-rata kategorinya.
+                </p>
+            </div>
+            <?php endif; ?>
+
+            <!-- TABEL PRODUK -->
             <div class="card fade-in">
-                <h2 style="margin-bottom:1.5rem"><?=$edit_product?'Edit':'Tambah'?> Produk</h2>
-                <form method="POST">
-                    <?php if($edit_product):?><input type="hidden" name="id_produk" value="<?=$edit_product['id_produk']?>"><?php endif;?>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-                        <div class="form-group">
-                            <label>Nama Produk</label>
-                            <input type="text" name="nama_produk" value="<?=$edit_product['nama_produk']??''?>" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Kode Produk</label>
-                            <input type="text" name="kode_produk" value="<?=$edit_product['kode_produk']??''?>" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Kategori</label>
-                            <select name="id_kategori" required>
-                                <?php while($cat=mysqli_fetch_assoc($result_categories)):?>
-                                <option value="<?=$cat['id_kategori']?>" <?=($edit_product&&$edit_product['id_kategori']==$cat['id_kategori'])?'selected':''?>><?=$cat['nama_kategori']?></option>
-                                <?php endwhile;?>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Satuan</label>
-                            <select name="id_satuan" required>
-                                <?php while($unit=mysqli_fetch_assoc($result_units)):?>
-                                <option value="<?=$unit['id_satuan']?>" <?=($edit_product&&$edit_product['id_satuan']==$unit['id_satuan'])?'selected':''?>><?=$unit['nama_satuan']?></option>
-                                <?php endwhile;?>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Harga Beli</label>
-                            <input type="number" name="harga_beli" value="<?=$edit_product['harga_beli']??''?>" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Harga Jual</label>
-                            <input type="number" name="harga_jual" value="<?=$edit_product['harga_jual']??''?>" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Stok</label>
-                            <input type="number" name="stok" value="<?=$edit_product['stok']??0?>" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Stok Minimum</label>
-                            <input type="number" name="stok_minimum" value="<?=$edit_product['stok_minimum']??5?>" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Merk</label>
-                            <input type="text" name="merk" value="<?=$edit_product['merk']??''?>">
-                        </div>
-                        <div class="form-group">
-                            <label>Deskripsi</label>
-                            <textarea name="deskripsi" rows="3"><?=$edit_product['deskripsi']??''?></textarea>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-secondary" style="margin-top:1rem">
-                        <i class="fas fa-save"></i> <?=$edit_product?'Update':'Simpan'?> Produk
-                    </button>
-                    <?php if($edit_product):?>
-                    <a href="products.php" class="btn-primary" style="margin-left:1rem">Batal</a>
-                    <?php endif;?>
-                </form>
-            </div>
-            <div class="card fade-in-up">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-                    <h2>Daftar Produk</h2>
-                    <form method="GET" style="display:flex;gap:1rem">
-                        <input type="text" name="search" placeholder="Cari produk..." value="<?=$search?>" style="padding:.8rem;border:2px solid #e5e7eb;border-radius:10px">
-                        <button type="submit" class="btn-secondary"><i class="fas fa-search"></i></button>
-                    </form>
-                </div>
-                <div style="overflow-x:auto">
+                <div style="overflow-x: auto;">
                     <table>
                         <thead>
                             <tr>
-                                <th>Kode</th><th>Nama Produk</th><th>Kategori</th><th>Stok</th><th>Harga Jual</th><th>Aksi</th>
+                                <th>Kode</th>
+                                <th>Produk</th>
+                                <th>Kategori</th>
+                                <th style="text-align:right;">Stok</th>
+                                <th style="text-align:right;">Harga Beli</th>
+                                <th style="text-align:right;">Harga Jual</th>
+                                <th style="text-align:center;">Label</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php while($prod=mysqli_fetch_assoc($result_products)):?>
-                            <tr>
-                                <td><?=$prod['kode_produk']?></td>
-                                <td><strong><?=$prod['nama_produk']?></strong><br><small><?=$prod['merk']?></small></td>
-                                <td><?=$prod['nama_kategori']?></td>
-                                <td><?=$prod['stok']?> <?=$prod['nama_satuan']?></td>
-                                <td><?=formatRupiah($prod['harga_jual'])?></td>
-                                <td>
-                                    <a href="?edit=<?=$prod['id_produk']?>" class="btn-action btn-edit"><i class="fas fa-edit"></i> Edit</a>
-                                    <a href="?delete=<?=$prod['id_produk']?>" class="btn-action btn-delete" onclick="return confirm('Yakin hapus produk ini?')"><i class="fas fa-trash"></i> Hapus</a>
-                                </td>
-                            </tr>
-                            <?php endwhile;?>
+                            <?php if ($total_produk > 0): ?>
+                                <?php mysqli_data_seek($result, 0); ?>
+                                <?php while($prod = mysqli_fetch_assoc($result)): ?>
+                                <?php
+                                // Cek apakah harga di atas rata-rata kategori (untuk badge)
+                                $avg_query = mysqli_query($conn, "SELECT AVG(harga_jual) as avg_price FROM produk WHERE id_kategori = {$prod['id_kategori']}");
+                                $avg_data = mysqli_fetch_assoc($avg_query);
+                                $is_premium = $prod['harga_jual'] > $avg_data['avg_price'];
+                                ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($prod['kode_produk']) ?></td>
+                                    <td>
+                                        <strong><?= htmlspecialchars($prod['nama_produk']) ?></strong>
+                                        <?php if ($prod['merk']): ?>
+                                        <br><small style="color:#888;"><?= htmlspecialchars($prod['merk']) ?></small>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?= htmlspecialchars($prod['nama_kategori']) ?></td>
+                                    <td style="text-align:right;"><?= $prod['stok'] ?> <?= htmlspecialchars($prod['nama_satuan']) ?></td>
+                                    <td style="text-align:right;"><?= formatRupiah($prod['harga_beli']) ?></td>
+                                    <td style="text-align:right;font-weight:600;color:var(--primary-green);">
+                                        <?= formatRupiah($prod['harga_jual']) ?>
+                                    </td>
+                                    <td style="text-align:center;">
+                                        <?php if ($is_premium): ?>
+                                        <span class="badge badge-premium">
+                                            <i class="fas fa-crown"></i> Premium
+                                        </span>
+                                        <?php else: ?>
+                                        <span class="badge badge-normal">Normal</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" style="text-align:center;padding:2rem;color:var(--text-gray);">
+                                        Tidak ada produk ditemukan
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
+
         </main>
     </div>
+
     <script src="../assets/js/main.js"></script>
 </body>
 </html>
