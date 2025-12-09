@@ -2,18 +2,23 @@
 require_once '../config.php';
 if (!isLoggedIn() || !isAdmin()) { header('Location: ../login.php'); exit; }
 
-$query = "SELECT 
-            p.*, 
-            COUNT(t.id_transaksi) AS total_transaksi,
-            COALESCE(SUM(t.total_bayar), 0) AS total_belanja
-          FROM pelanggan p
-          LEFT JOIN transaksi_penjualan t 
-                 ON p.id_pelanggan = t.id_pelanggan
-                AND t.status = 'selesai'
-          GROUP BY p.id_pelanggan
-          ORDER BY total_belanja DESC";
+$search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
+
+$query = "SELECT t.*, u.nama_lengkap 
+          FROM transaksi_penjualan t 
+          JOIN users u ON t.id_user = u.id_user 
+          WHERE 1=1";
+
+if ($search) {
+    $query .= " AND (t.kode_transaksi LIKE '%$search%' 
+                OR u.nama_lengkap LIKE '%$search%')";
+}
+
+$query .= " ORDER BY t.tanggal DESC, t.waktu DESC";
 
 $result = mysqli_query($conn, $query);
+
+// kalau error, tampilkan supaya gampang debug
 if (!$result) {
     die('Query error: '.mysqli_error($conn));
 }
@@ -22,7 +27,7 @@ if (!$result) {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Pelanggan - Admin</title>
+    <title>Transaksi - Admin</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -36,7 +41,9 @@ if (!$result) {
         table{width:100%;border-collapse:collapse}
         th{background:var(--light-green);padding:.8rem;text-align:left;font-weight:600}
         td{padding:.8rem;border-bottom:1px solid #e5e7eb}
-        .badge{padding:.3rem .8rem;border-radius:15px;font-size:.85rem;font-weight:600;background:#e0e7ff;color:#6366f1}
+        .badge{padding:.3rem .8rem;border-radius:15px;font-size:.85rem;font-weight:600}
+        .badge-success{background:#d1fae5;color:#10b981}
+        .badge-warning{background:#fef3c7;color:#f59e0b}
     </style>
 </head>
 <body>
@@ -58,39 +65,43 @@ if (!$result) {
             <li><a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
             <li><a href="products.php"><i class="fas fa-box"></i> Produk</a></li>
             <li><a href="categories.php"><i class="fas fa-tags"></i> Kategori</a></li>
-            <li><a href="transactions.php"><i class="fas fa-receipt"></i> Transaksi</a></li>
-            <li><a href="customers.php" class="active"><i class="fas fa-users"></i> Pelanggan</a></li>
+            <li><a href="transactions.php" class="active"><i class="fas fa-receipt"></i> Transaksi</a></li>
+            <li><a href="customers.php"><i class="fas fa-users"></i> Pelanggan</a></li>
             <li><a href="stock.php"><i class="fas fa-warehouse"></i> Stok</a></li>
             <li><a href="reports.php"><i class="fas fa-chart-bar"></i> Laporan</a></li>
             <li><a href="users.php"><i class="fas fa-user-shield"></i> Users</a></li>
         </ul>
     </aside>
     <main class="main-content">
-        <h1 style="margin-bottom:2rem"><i class="fas fa-users"></i> Data Pelanggan</h1>
+        <h1 style="margin-bottom:2rem"><i class="fas fa-receipt"></i> Data Transaksi</h1>
         <div class="card">
-            <h2 style="margin-bottom:1.5rem">
-                Total Pelanggan: <?=mysqli_num_rows($result)?>
-            </h2>
+            <form method="GET" style="margin-bottom:1.5rem;display:flex;gap:1rem">
+                <input type="text" name="search" placeholder="Cari transaksi..." 
+                       value="<?=$search?>" 
+                       style="flex:1;padding:.8rem;border:2px solid #e5e7eb;border-radius:10px">
+                <button type="submit" class="btn-secondary"><i class="fas fa-search"></i> Cari</button>
+            </form>
             <div style="overflow-x:auto">
                 <table>
                     <thead>
                     <tr>
-                        <th>Kode</th><th>Nama</th><th>Telepon</th>
-                        <th>Alamat</th><th>Jenis</th><th>Poin</th>
-                        <th>Total Transaksi</th><th>Total Belanja</th>
+                        <th>Kode</th><th>Tanggal</th><th>Kasir</th>
+                        <th>Total Item</th><th>Total Bayar</th><th>Status</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <?php while($c = mysqli_fetch_assoc($result)): ?>
+                    <?php while($t = mysqli_fetch_assoc($result)): ?>
                         <tr>
-                            <td><?=$c['kode_pelanggan']?></td>
-                            <td><strong><?=$c['nama_pelanggan']?></strong></td>
-                            <td><?=$c['telepon']?></td>
-                            <td><?=$c['alamat'] ?: '<em style="color:#999">Belum diisi</em>'?></td>
-                            <td><?=ucfirst($c['tipe'])?></td>
-                            <td><?=$c['poin']?></td>
-                            <td><span class="badge"><?=$c['total_transaksi']?> transaksi</span></td>
-                            <td><strong><?=formatRupiah($c['total_belanja'])?></strong></td>
+                            <td><strong><?=$t['kode_transaksi']?></strong></td>
+                            <td><?=date('d/m/Y H:i', strtotime($t['tanggal'].' '.$t['waktu']))?></td>
+                            <td><?=$t['nama_lengkap']?></td>
+                            <td><?=$t['total_item']?> item</td>
+                            <td><strong><?=formatRupiah($t['total_bayar'])?></strong></td>
+                            <td>
+                                <span class="badge <?=$t['status']=='selesai'?'badge-success':'badge-warning'?>">
+                                    <?=ucfirst($t['status'])?>
+                                </span>
+                            </td>
                         </tr>
                     <?php endwhile; ?>
                     </tbody>
