@@ -38,7 +38,7 @@ $result_users = mysqli_query($conn, "SELECT * FROM users ORDER BY role, nama_len
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .admin-layout{display:flex;min-height:calc(100vh - 70px)}
-        .sidebar{width:250px;background:linear-gradient(180deg,var(--primary-green),var(--dark-green));padding:2rem 0;color:var(--white)}
+        .sidebar{width:250px;background:linear-gradient(180deg,var(--primary-brown),var(--dark-brown));padding:2rem 0;color:var(--white)}
         .sidebar-menu{list-style:none}
         .sidebar-menu li a{display:block;padding:1rem 2rem;color:var(--white);text-decoration:none;border-left:3px solid transparent}
         .sidebar-menu li a:hover,.sidebar-menu li a.active{background:rgba(255,255,255,.1);border-left-color:var(--white)}
@@ -48,13 +48,13 @@ $result_users = mysqli_query($conn, "SELECT * FROM users ORDER BY role, nama_len
         .form-group label{display:block;font-weight:600;margin-bottom:.5rem}
         .form-group input,.form-group select{width:100%;padding:.8rem;border:2px solid #e5e7eb;border-radius:10px}
         table{width:100%;border-collapse:collapse}
-        th{background:var(--light-green);padding:.8rem;text-align:left;font-weight:600}
+        th{background:var(--light-brown);padding:.8rem;text-align:left;font-weight:600}
         td{padding:.8rem;border-bottom:1px solid #e5e7eb}
         .badge{padding:.3rem .8rem;border-radius:15px;font-size:.85rem;font-weight:600}
         .badge-admin{background:#dbeafe;color:#3b82f6}
         .badge-kasir{background:#fef3c7;color:#f59e0b}
         .badge-customer{background:#d1fae5;color:#10b981}
-        .alert{padding:1rem;border-radius:10px;margin-bottom:1rem;background:var(--light-green);color:var(--dark-green)}
+        .alert{padding:1rem;border-radius:10px;margin-bottom:1rem;background:var(--light-brown);color:var(--dark-brown)}
     </style>
 </head>
 <body>
@@ -140,7 +140,7 @@ $result_users = mysqli_query($conn, "SELECT * FROM users ORDER BY role, nama_len
                             <td><?=$u['no_hp']?></td>
                             <td><span class="badge badge-<?=$u['role']?>"><?=ucfirst($u['role'])?></span></td>
                             <td>
-                                <a href="?edit=<?=$u['id_user']?>" class="btn-action" style="padding:.5rem 1rem;border-radius:8px;background:var(--light-green);color:var(--primary-green);text-decoration:none"><i class="fas fa-edit"></i> Edit</a>
+                                <a href="?edit=<?=$u['id_user']?>" class="btn-action" style="padding:.5rem 1rem;border-radius:8px;background:var(--light-brown);color:var(--primary-brown);text-decoration:none"><i class="fas fa-edit"></i> Edit</a>
                                 <?php if($u['id_user']!=$_SESSION['id_user']):?>
                                 <a href="?delete=<?=$u['id_user']?>" class="btn-action" style="padding:.5rem 1rem;border-radius:8px;background:#fee2e2;color:#dc2626;text-decoration:none" onclick="return confirm('Yakin hapus user ini?')"><i class="fas fa-trash"></i> Hapus</a>
                                 <?php endif;?>

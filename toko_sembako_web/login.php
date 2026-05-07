@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             align-items: center;
             justify-content: center;
             padding: 3rem 5%;
-            background: linear-gradient(135deg, var(--light-green), var(--white));
+            background: linear-gradient(135deg, var(--light-brown), var(--white));
         }
 
         .auth-container {
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .auth-image {
-            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
             padding: 3rem;
             display: flex;
             flex-direction: column;
@@ -119,8 +119,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .form-group input:focus {
             outline: none;
-            border-color: var(--primary-green);
-            box-shadow: 0 0 0 3px var(--light-green);
+            border-color: var(--primary-brown);
+            box-shadow: 0 0 0 3px var(--light-brown);
         }
 
         .alert {
@@ -217,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </button>
 
                     <p class="text-center" style="color: var(--text-gray);">
-                        Belum punya akun? <a href="register.php" style="color: var(--primary-green); font-weight: 600;">Daftar Sekarang</a>
+                        Belum punya akun? <a href="register.php" style="color: var(--primary-brown); font-weight: 600;">Daftar Sekarang</a>
                     </p>
                 </form>
             </div>

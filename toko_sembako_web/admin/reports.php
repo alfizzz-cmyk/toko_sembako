@@ -49,7 +49,7 @@ $bulan_nama = [
         .admin-layout { display: flex; min-height: calc(100vh - 70px); }
         .sidebar {
             width: 250px;
-            background: linear-gradient(180deg, var(--primary-green), var(--dark-green));
+            background: linear-gradient(180deg, var(--primary-brown), var(--dark-brown));
             padding: 2rem 0;
             color: var(--white);
         }
@@ -109,7 +109,7 @@ $bulan_nama = [
         }
         table { width: 100%; border-collapse: collapse; }
         th {
-            background: var(--light-green);
+            background: var(--light-brown);
             color: var(--text-dark);
             padding: 0.8rem;
             text-align: left;
@@ -320,7 +320,7 @@ if (!$result_kategori) {
         <!-- SUMMARY -->
         <div class="stats-grid fade-in-up">
             <div class="stat-card">
-                <div class="stat-icon" style="background: var(--light-green); color: var(--primary-green);">
+                <div class="stat-icon" style="background: var(--light-brown); color: var(--primary-brown);">
                     <i class="fas fa-receipt"></i>
                 </div>
                 <h3>Total Transaksi</h3>

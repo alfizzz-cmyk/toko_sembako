@@ -32,14 +32,14 @@ if (!$result) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .admin-layout{display:flex;min-height:calc(100vh - 70px)}
-        .sidebar{width:250px;background:linear-gradient(180deg,var(--primary-green),var(--dark-green));padding:2rem 0;color:var(--white)}
+        .sidebar{width:250px;background:linear-gradient(180deg,var(--primary-brown),var(--dark-brown));padding:2rem 0;color:var(--white)}
         .sidebar-menu{list-style:none}
         .sidebar-menu li a{display:block;padding:1rem 2rem;color:var(--white);text-decoration:none;border-left:3px solid transparent}
         .sidebar-menu li a:hover,.sidebar-menu li a.active{background:rgba(255,255,255,.1);border-left-color:var(--white)}
         .main-content{flex:1;padding:2rem;background:var(--bg-light)}
         .card{background:var(--white);border-radius:15px;padding:1.5rem;box-shadow:var(--shadow)}
         table{width:100%;border-collapse:collapse}
-        th{background:var(--light-green);padding:.8rem;text-align:left;font-weight:600}
+        th{background:var(--light-brown);padding:.8rem;text-align:left;font-weight:600}
         td{padding:.8rem;border-bottom:1px solid #e5e7eb}
         .badge{padding:.3rem .8rem;border-radius:15px;font-size:.85rem;font-weight:600}
         .badge-success{background:#d1fae5;color:#10b981}

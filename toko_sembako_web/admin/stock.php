@@ -83,7 +83,7 @@ if ($result_products === false) {
         .admin-layout { display: flex; min-height: calc(100vh - 70px); }
         .sidebar {
             width: 250px;
-            background: linear-gradient(180deg, var(--primary-green), var(--dark-green));
+            background: linear-gradient(180deg, var(--primary-brown), var(--dark-brown));
             padding: 2rem 0;
             color: var(--white);
         }
@@ -125,11 +125,11 @@ if ($result_products === false) {
         }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
-            border-color: var(--primary-green);
+            border-color: var(--primary-brown);
         }
         table { width: 100%; border-collapse: collapse; }
         th {
-            background: var(--light-green);
+            background: var(--light-brown);
             color: var(--text-dark);
             padding: 0.8rem;
             text-align: left;
@@ -157,9 +157,9 @@ if ($result_products === false) {
             margin-bottom: 1rem;
         }
         .alert-success {
-            background: var(--light-green);
-            color: var(--dark-green);
-            border: 1px solid var(--primary-green);
+            background: var(--light-brown);
+            color: var(--dark-brown);
+            border: 1px solid var(--primary-brown);
         }
     </style>
 </head>

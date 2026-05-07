@@ -65,7 +65,7 @@ $kategori_list = mysqli_query($conn, "SELECT * FROM kategori_barang ORDER BY nam
         .admin-layout { display: flex; min-height: calc(100vh - 70px); }
         .sidebar {
             width: 250px;
-            background: linear-gradient(180deg, var(--primary-green), var(--dark-green));
+            background: linear-gradient(180deg, var(--primary-brown), var(--dark-brown));
             padding: 2rem 0;
             color: var(--white);
         }
@@ -106,16 +106,16 @@ $kategori_list = mysqli_query($conn, "SELECT * FROM kategori_barang ORDER BY nam
             transition: all 0.3s ease;
         }
         .filter-bar a:hover, .filter-bar a.active {
-            background: var(--primary-green);
+            background: var(--primary-brown);
             color: white;
-            border-color: var(--primary-green);
+            border-color: var(--primary-brown);
         }
         .filter-bar a.active {
-            background: var(--dark-green);
+            background: var(--dark-brown);
         }
         table { width: 100%; border-collapse: collapse; }
         th {
-            background: var(--light-green);
+            background: var(--light-brown);
             color: var(--text-dark);
             padding: 0.8rem;
             text-align: left;
@@ -237,7 +237,7 @@ $kategori_list = mysqli_query($conn, "SELECT * FROM kategori_barang ORDER BY nam
                                     <td><?= htmlspecialchars($prod['nama_kategori']) ?></td>
                                     <td style="text-align:right;"><?= $prod['stok'] ?> <?= htmlspecialchars($prod['nama_satuan']) ?></td>
                                     <td style="text-align:right;"><?= formatRupiah($prod['harga_beli']) ?></td>
-                                    <td style="text-align:right;font-weight:600;color:var(--primary-green);">
+                                    <td style="text-align:right;font-weight:600;color:var(--primary-brown);">
                                         <?= formatRupiah($prod['harga_jual']) ?>
                                     </td>
                                     <td style="text-align:center;">

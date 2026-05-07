@@ -46,7 +46,7 @@ if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
             <div style="overflow-x:auto;margin-bottom:1.5rem;">
                 <table style="width:100%;border-collapse:collapse;">
                     <thead>
-                    <tr style="background:var(--light-green);">
+                    <tr style="background:var(--light-brown);">
                         <th style="padding:.8rem;text-align:left;">Produk</th>
                         <th style="padding:.8rem;text-align:right;">Harga</th>
                         <th style="padding:.8rem;text-align:center;">Qty</th>
@@ -74,7 +74,7 @@ if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
                     <tfoot>
                     <tr>
                         <th colspan="3" style="padding:.8rem;text-align:right;">Total</th>
-                        <th style="padding:.8rem;text-align:right;color:var(--primary-green);font-size:1.2rem;">
+                        <th style="padding:.8rem;text-align:right;color:var(--primary-brown);font-size:1.2rem;">
                             <?= formatRupiah($total) ?>
                         </th>
                     </tr>

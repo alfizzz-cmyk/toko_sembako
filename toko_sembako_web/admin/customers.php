@@ -45,7 +45,7 @@ $total_member = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total
         .admin-layout { display: flex; min-height: calc(100vh - 70px); }
         .sidebar {
             width: 250px;
-            background: linear-gradient(180deg, var(--primary-green), var(--dark-green));
+            background: linear-gradient(180deg, var(--primary-brown), var(--dark-brown));
             padding: 2rem 0;
             color: var(--white);
         }
@@ -77,7 +77,7 @@ $total_member = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total
             margin-bottom: 2rem;
         }
         .stat-box {
-            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
             color: white;
             padding: 1.5rem;
             border-radius: 10px;
@@ -93,7 +93,7 @@ $total_member = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total
         }
         table { width: 100%; border-collapse: collapse; }
         th {
-            background: var(--light-green);
+            background: var(--light-brown);
             color: var(--text-dark);
             padding: 0.8rem;
             text-align: left;
@@ -201,7 +201,7 @@ $total_member = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total
                                     </td>
                                     <td><?= htmlspecialchars($member['telepon']) ?></td>
                                     <td style="text-align:right;"><?= $member['total_transaksi'] ?>x</td>
-                                    <td style="text-align:right;font-weight:600;color:var(--primary-green);">
+                                    <td style="text-align:right;font-weight:600;color:var(--primary-brown);">
                                         <?= formatRupiah($member['total_belanja']) ?>
                                     </td>
                                 </tr>

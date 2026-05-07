@@ -61,7 +61,7 @@ $result_products = mysqli_query($conn, $query_products);
         <div class="hero-content">
             <div class="hero-text slide-in-left">
                 <h1>Belanja <span>Sembako</span><br>Mudah & Terpercaya</h1>
-                <p>Dapatkan kebutuhan pokok berkualitas dengan harga terjangkau. Pengiriman cepat ke seluruh Indonesia!</p>
+                <p>Dapatkan kebutuhan pokok berkualitas dengan harga terjangkau. Pengiriman cepat sekitaran Bandar Lampung!</p>
                 <div class="hero-buttons">
                     <a href="products.php" class="btn-secondary">
                         <i class="fas fa-shopping-cart"></i> Belanja Sekarang
@@ -72,7 +72,7 @@ $result_products = mysqli_query($conn, $query_products);
                 </div>
             </div>
             <div class="hero-image slide-in-right">
-                <i class="fas fa-shopping-basket" style="font-size: 15rem; color: var(--primary-green); opacity: 0.3;"></i>
+                <i class="fas fa-shopping-basket" style="font-size: 15rem; color: var(--primary-brown); opacity: 0.3;"></i>
             </div>
         </div>
     </section>
@@ -81,7 +81,7 @@ $result_products = mysqli_query($conn, $query_products);
     <section class="search-section fade-in">
         <div class="search-container">
             <form action="products.php" method="GET" class="search-box">
-                <i class="fas fa-search" style="color: var(--primary-green); font-size: 1.2rem; margin: 0 0.5rem;"></i>
+                <i class="fas fa-search" style="color: var(--primary-brown); font-size: 1.2rem; margin: 0 0.5rem;"></i>
                 <input type="text" name="search" placeholder="Cari produk sembako (beras, minyak, gula, dll...)">
                 <button type="submit">
                     <i class="fas fa-search"></i> Cari
@@ -134,7 +134,7 @@ $result_products = mysqli_query($conn, $query_products);
                     <?php if ($product['gambar']): ?>
                         <img src="assets/image/products/<?= $product['gambar'] ?>" alt="<?= $product['nama_produk'] ?>">
                     <?php else: ?>
-                        <i class="fas fa-image" style="font-size: 4rem; color: var(--primary-green);"></i>
+                        <i class="fas fa-image" style="font-size: 4rem; color: var(--primary-brown);"></i>
                     <?php endif; ?>
                 </div>
 

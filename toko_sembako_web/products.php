@@ -57,7 +57,7 @@ $result_categories = mysqli_query($conn, $query_categories);
         }
 
         .category-filter-btn {
-            background: var(--light-green);
+            background: var(--light-brown);
             color: var(--text-dark);
             border: 2px solid transparent;
             padding: 0.7rem 1.5rem;
@@ -69,7 +69,7 @@ $result_categories = mysqli_query($conn, $query_categories);
 
         .category-filter-btn:hover,
         .category-filter-btn.active {
-            background: var(--primary-green);
+            background: var(--primary-brown);
             color: var(--white);
             transform: translateY(-2px);
         }
@@ -121,7 +121,7 @@ $result_categories = mysqli_query($conn, $query_categories);
     <section class="search-section">
         <div class="search-container">
             <form action="products.php" method="GET" class="search-box">
-                <i class="fas fa-search" style="color: var(--primary-green); font-size: 1.2rem; margin: 0 0.5rem;"></i>
+                <i class="fas fa-search" style="color: var(--primary-brown); font-size: 1.2rem; margin: 0 0.5rem;"></i>
                 <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Cari produk...">
                 <button type="submit">
                     <i class="fas fa-search"></i> Cari
@@ -183,7 +183,7 @@ $result_categories = mysqli_query($conn, $query_categories);
                         <?php if ($product['gambar']): ?>
                             <img src="assets/image/products/<?= $product['gambar'] ?>" alt="<?= $product['nama_produk'] ?>">
                         <?php else: ?>
-                            <i class="fas fa-image" style="font-size: 4rem; color: var(--primary-green);"></i>
+                            <i class="fas fa-image" style="font-size: 4rem; color: var(--primary-brown);"></i>
                         <?php endif; ?>
                     </div>
 
@@ -247,7 +247,7 @@ $result_categories = mysqli_query($conn, $query_categories);
         </div>
 
         <div class="footer-bottom">
-            <p>&copy; 2024 Toko Sembako. All rights reserved.</p>
+            <p>&copy; 2026 Toko Sembako. All rights reserved.</p>
         </div>
     </footer>
 

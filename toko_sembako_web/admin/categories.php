@@ -33,7 +33,7 @@ $result_categories = mysqli_query($conn, "SELECT k.*, COUNT(p.id_produk) as tota
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .admin-layout{display:flex;min-height:calc(100vh - 70px)}
-        .sidebar{width:250px;background:linear-gradient(180deg,var(--primary-green),var(--dark-green));padding:2rem 0;color:var(--white)}
+        .sidebar{width:250px;background:linear-gradient(180deg,var(--primary-brown),var(--dark-brown));padding:2rem 0;color:var(--white)}
         .sidebar-menu{list-style:none}
         .sidebar-menu li a{display:block;padding:1rem 2rem;color:var(--white);text-decoration:none;transition:all .3s ease;border-left:3px solid transparent}
         .sidebar-menu li a:hover,.sidebar-menu li a.active{background:rgba(255,255,255,.1);border-left-color:var(--white)}
@@ -43,9 +43,9 @@ $result_categories = mysqli_query($conn, "SELECT k.*, COUNT(p.id_produk) as tota
         .form-group label{display:block;font-weight:600;margin-bottom:.5rem}
         .form-group input,.form-group textarea{width:100%;padding:.8rem;border:2px solid #e5e7eb;border-radius:10px}
         table{width:100%;border-collapse:collapse}
-        th{background:var(--light-green);padding:.8rem;text-align:left;font-weight:600}
+        th{background:var(--light-brown);padding:.8rem;text-align:left;font-weight:600}
         td{padding:.8rem;border-bottom:1px solid #e5e7eb}
-        .alert{padding:1rem;border-radius:10px;margin-bottom:1rem;background:var(--light-green);color:var(--dark-green)}
+        .alert{padding:1rem;border-radius:10px;margin-bottom:1rem;background:var(--light-brown);color:var(--dark-brown)}
         .btn-action{padding:.5rem 1rem;border-radius:8px;text-decoration:none;margin:.2rem}
     </style>
 </head>
@@ -111,7 +111,7 @@ $result_categories = mysqli_query($conn, "SELECT k.*, COUNT(p.id_produk) as tota
                             <td><?=$cat['keterangan']?></td>
                             <td><?=$cat['total_produk']?> produk</td>
                             <td>
-                                <a href="?edit=<?=$cat['id_kategori']?>" class="btn-action" style="background:var(--light-green);color:var(--primary-green)"><i class="fas fa-edit"></i> Edit</a>
+                                <a href="?edit=<?=$cat['id_kategori']?>" class="btn-action" style="background:var(--light-brown);color:var(--primary-brown)"><i class="fas fa-edit"></i> Edit</a>
                                 <a href="?delete=<?=$cat['id_kategori']?>" class="btn-action" style="background:#fee2e2;color:#dc2626" onclick="return confirm('Yakin hapus?')"><i class="fas fa-trash"></i> Hapus</a>
                             </td>
                         </tr>

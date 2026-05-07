@@ -51,7 +51,7 @@ $result_related = mysqli_query($conn, $query_related);
         }
 
         .detail-image {
-            background: var(--light-green);
+            background: var(--light-brown);
             border-radius: 20px;
             padding: 2rem;
             display: flex;
@@ -62,7 +62,7 @@ $result_related = mysqli_query($conn, $query_related);
 
         .detail-image i {
             font-size: 10rem;
-            color: var(--primary-green);
+            color: var(--primary-brown);
         }
 
         .detail-info h1 {
@@ -79,7 +79,7 @@ $result_related = mysqli_query($conn, $query_related);
 
         .detail-price {
             font-size: 2.5rem;
-            color: var(--primary-green);
+            color: var(--primary-brown);
             font-weight: bold;
             margin: 1.5rem 0;
         }
@@ -120,8 +120,8 @@ $result_related = mysqli_query($conn, $query_related);
         }
 
         .stock-available {
-            background: var(--light-green);
-            color: var(--primary-green);
+            background: var(--light-brown);
+            color: var(--primary-brown);
         }
 
         .stock-low {
@@ -130,7 +130,7 @@ $result_related = mysqli_query($conn, $query_related);
         }
 
         .order-section {
-            background: var(--light-green);
+            background: var(--light-brown);
             padding: 2rem;
             border-radius: 15px;
             margin-top: 2rem;
@@ -147,7 +147,7 @@ $result_related = mysqli_query($conn, $query_related);
             width: 40px;
             height: 40px;
             border: none;
-            background: var(--primary-green);
+            background: var(--primary-brown);
             color: var(--white);
             border-radius: 50%;
             cursor: pointer;
@@ -156,7 +156,7 @@ $result_related = mysqli_query($conn, $query_related);
         }
 
         .qty-btn:hover {
-            background: var(--dark-green);
+            background: var(--dark-brown);
             transform: scale(1.1);
         }
 
@@ -165,7 +165,7 @@ $result_related = mysqli_query($conn, $query_related);
             text-align: center;
             font-size: 1.2rem;
             padding: 0.5rem;
-            border: 2px solid var(--primary-green);
+            border: 2px solid var(--primary-brown);
             border-radius: 10px;
         }
 
@@ -220,7 +220,7 @@ $result_related = mysqli_query($conn, $query_related);
             </div>
 
             <div class="detail-info slide-in-right">
-                <div class="product-category" style="color: var(--primary-green); font-weight: 600; margin-bottom: 0.5rem;">
+                <div class="product-category" style="color: var(--primary-brown); font-weight: 600; margin-bottom: 0.5rem;">
                     <i class="fas fa-tag"></i> <?= $product['nama_kategori'] ?>
                 </div>
 
@@ -311,9 +311,22 @@ $result_related = mysqli_query($conn, $query_related);
         <div class="products-grid">
             <?php while ($related = mysqli_fetch_assoc($result_related)): ?>
             <div class="product-card fade-in-up">
+
                 <div class="product-image">
-                    <i class="fas fa-image" style="font-size: 4rem; color: var(--primary-green);"></i>
-                </div>
+                <?php 
+    // Tentukan path gambar berdasarkan nama file di database
+    // Sesuaikan nama kolom database (misal: 'gambar')
+                 $gambar_path = "assets/image/products/" . $related['gambar']; 
+    
+    // Cek apakah file gambarnya ada dan kolomnya tidak kosong
+                if (!empty($related['gambar']) && file_exists($gambar_path)): ?>
+                 <img src="<?= $gambar_path ?>" alt="<?= $related['nama_produk'] ?>" 
+                     style="width: 100%; height: 100%; object-fit: cover;">
+                 <?php else: ?>
+        <!-- Jika gambar tidak ada, tampilkan ikon default cokelat seperti sekarang -->
+                 <i class="fas fa-image" style="font-size: 4rem; color: var(--primary-brown);"></i>
+                 <?php endif; ?>
+             </div>
 
                 <div class="product-info">
                     <div class="product-category"><?= $related['nama_kategori'] ?></div>
@@ -355,7 +368,7 @@ $result_related = mysqli_query($conn, $query_related);
         </div>
 
         <div class="footer-bottom">
-            <p>&copy; 2024 Toko Sembako. All rights reserved.</p>
+            <p>&copy; 2026 Toko Sembako. All rights reserved.</p>
         </div>
     </footer>
 

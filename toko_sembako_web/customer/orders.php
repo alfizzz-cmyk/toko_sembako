@@ -55,7 +55,7 @@ $total_transaksi = mysqli_num_rows($result);
             <div style="overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;">
                     <thead>
-                    <tr style="background:var(--light-green);">
+                    <tr style="background:var(--light-brown);">
                         <th style="padding:.8rem;text-align:left;">Tanggal</th>
                         <th style="padding:.8rem;text-align:left;">Kode</th>
                         <th style="padding:.8rem;text-align:right;">Total Item</th>

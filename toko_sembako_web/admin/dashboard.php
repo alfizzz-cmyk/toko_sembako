@@ -47,7 +47,7 @@ $result_low_stock = mysqli_query($conn, $query_low_stock);
 
         .sidebar {
             width: 250px;
-            background: linear-gradient(180deg, var(--primary-green), var(--dark-green));
+            background: linear-gradient(180deg, var(--primary-brown), var(--dark-brown));
             padding: 2rem 0;
             color: var(--white);
         }
@@ -59,10 +59,14 @@ $result_low_stock = mysqli_query($conn, $query_low_stock);
         .sidebar-menu li a {
             display: block;
             padding: 1rem 2rem;
-            color: var(--white);
+            color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
             transition: all 0.3s ease;
             border-left: 3px solid transparent;
+        }
+
+        .sidebar-menu li a i {
+             margin-right: 10px; /* Jarak ikon ke teks */
         }
 
         .sidebar-menu li a:hover,
@@ -78,11 +82,12 @@ $result_low_stock = mysqli_query($conn, $query_low_stock);
         }
 
         .dashboard-header {
-            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
-            color: var(--white);
+            background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+            color: var(--white); 
             padding: 2rem;
             border-radius: 20px;
             margin-bottom: 2rem;
+            
         }
 
         .stats-grid {
@@ -142,7 +147,7 @@ $result_low_stock = mysqli_query($conn, $query_low_stock);
         }
 
         th {
-            background: var(--light-green);
+            background: var(--light-brown);
             color: var(--text-dark);
             padding: 0.8rem;
             text-align: left;
@@ -168,8 +173,8 @@ $result_low_stock = mysqli_query($conn, $query_low_stock);
         }
 
         .badge-success {
-            background: var(--light-green);
-            color: var(--primary-green);
+            background: var(--light-brown);
+            color: var(--primary-brown);
         }
 
         .badge-warning {
@@ -232,7 +237,7 @@ $result_low_stock = mysqli_query($conn, $query_low_stock);
             <!-- STATISTICS -->
             <div class="stats-grid fade-in-up">
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: var(--light-green); color: var(--primary-green);">
+                    <div class="stat-icon" style="background: var(--light-brown); color: var(--primary-brown);">
                         <i class="fas fa-box"></i>
                     </div>
                     <h3>Total Produk</h3>
@@ -240,7 +245,7 @@ $result_low_stock = mysqli_query($conn, $query_low_stock);
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
+                    <div class="stat-icon" style="background: #ffedd5; color: #d97706;">
                         <i class="fas fa-exclamation-triangle"></i>
                     </div>
                     <h3>Stok Menipis</h3>
@@ -248,7 +253,7 @@ $result_low_stock = mysqli_query($conn, $query_low_stock);
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: #dbeafe; color: #3b82f6;">
+                    <div class="stat-icon" style="background: #ecfccb; color: #a3670d;">
                         <i class="fas fa-shopping-cart"></i>
                     </div>
                     <h3>Total Transaksi</h3>

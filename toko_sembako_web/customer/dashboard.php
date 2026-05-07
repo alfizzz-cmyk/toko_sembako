@@ -32,7 +32,7 @@ $result_trans = mysqli_query($conn, $query_trans);
         }
 
         .dashboard-header {
-            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
             color: var(--white);
             padding: 2rem;
             border-radius: 20px;
@@ -61,7 +61,7 @@ $result_trans = mysqli_query($conn, $query_trans);
 
         .stat-card .stat-value {
             font-size: 2rem;
-            color: var(--primary-green);
+            color: var(--primary-brown);
             font-weight: bold;
         }
 
@@ -79,7 +79,7 @@ $result_trans = mysqli_query($conn, $query_trans);
         }
 
         th {
-            background: var(--light-green);
+            background: var(--light-brown);
             color: var(--text-dark);
             padding: 1rem;
             text-align: left;
@@ -103,8 +103,8 @@ $result_trans = mysqli_query($conn, $query_trans);
         }
 
         .badge-success {
-            background: var(--light-green);
-            color: var(--primary-green);
+            background: var(--light-brown);
+            color: var(--primary-brown);
         }
     </style>
 </head>
@@ -222,7 +222,7 @@ $result_trans = mysqli_query($conn, $query_trans);
     <!-- FOOTER -->
     <footer>
         <div class="footer-bottom">
-            <p>&copy; 2024 Toko Sembako. All rights reserved.</p>
+            <p>&copy; 2026 Toko Sembako. All rights reserved.</p>
         </div>
     </footer>
 

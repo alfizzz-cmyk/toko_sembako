@@ -3,16 +3,16 @@
    ==================================== */
 
 :root {
-    --primary-green: #10b981;
-    --dark-green: #059669;
-    --light-green: #d1fae5;
-    --accent-green: #34d399;
-    --text-dark: #1f2937;
-    --text-gray: #6b7280;
-    --bg-light: #f9fafb;
+    --primary-brown: #8b4513;
+    --dark-brown: #5d2e0a;
+    --light-brown: #fdf5e6;
+    --accent-green: #d2b48c;
+    --text-dark: #2d241e;
+    --text-gray: #786c64;
+    --bg-light: #faf7f2;
     --white: #ffffff;
     --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(10, 7, 7, 0.1);
 }
 
 * {
@@ -114,7 +114,7 @@ body {
    ==================================== */
 
 header {
-    background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+    background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
     box-shadow: var(--shadow-lg);
     position: sticky;
     top: 0;
@@ -154,7 +154,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--primary-green);
+    color: var(--primary-brown);
     font-size: 1.5rem;
 }
 
@@ -195,7 +195,7 @@ header {
 
 .btn-primary {
     background: var(--white);
-    color: var(--primary-green);
+    color: var(--primary-brown);
     padding: 0.6rem 1.5rem;
     border-radius: 25px;
     text-decoration: none;
@@ -214,20 +214,20 @@ header {
 }
 
 .btn-secondary {
-    background: var(--primary-green);
+    background: var(--primary-brown);
     color: var(--white);
     padding: 0.6rem 1.5rem;
     border-radius: 25px;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
-    border: 2px solid var(--primary-green);
+    border: 2px solid var(--primary-brown);
     display: inline-block;
 }
 
 .btn-secondary:hover {
-    background: var(--dark-green);
-    border-color: var(--dark-green);
+    background: var(--dark-brown);
+    border-color: var(--dark-brown);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
 }
@@ -252,7 +252,7 @@ header {
    ==================================== */
 
 .hero {
-    background: linear-gradient(135deg, var(--light-green), var(--white));
+    background: linear-gradient(135deg, var(--light-brown), var(--white));
     padding: 4rem 5%;
     position: relative;
     overflow: hidden;
@@ -265,7 +265,7 @@ header {
     right: -20%;
     width: 600px;
     height: 600px;
-    background: var(--primary-green);
+    background: var(--primary-brown);
     opacity: 0.1;
     border-radius: 50%;
     animation: pulse 4s infinite;
@@ -290,7 +290,7 @@ header {
 }
 
 .hero-text h1 span {
-    color: var(--primary-green);
+    color: var(--primary-brown);
 }
 
 .hero-text p {
@@ -343,7 +343,7 @@ header {
 }
 
 .search-box:focus-within {
-    box-shadow: 0 0 0 3px var(--light-green);
+    box-shadow: 0 0 0 3px var(--light-brown);
 }
 
 .search-box input {
@@ -357,7 +357,7 @@ header {
 }
 
 .search-box button {
-    background: var(--primary-green);
+    background: var(--primary-brown);
     color: var(--white);
     border: none;
     padding: 0.7rem 2rem;
@@ -368,7 +368,7 @@ header {
 }
 
 .search-box button:hover {
-    background: var(--dark-green);
+    background: var(--dark-brown);
     transform: scale(1.05);
 }
 
@@ -404,7 +404,7 @@ header {
 }
 
 .category-card {
-    background: linear-gradient(135deg, var(--light-green), var(--white));
+    background: linear-gradient(135deg, var(--light-brown), var(--white));
     padding: 2rem;
     border-radius: 20px;
     text-align: center;
@@ -422,7 +422,7 @@ header {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, var(--primary-green) 0%, transparent 70%);
+    background: radial-gradient(circle, var(--primary-brown) 0%, transparent 70%);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -489,7 +489,7 @@ header {
     position: absolute;
     top: 15px;
     right: 15px;
-    background: var(--primary-green);
+    background: var(--primary-brown);
     color: var(--white);
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
@@ -502,7 +502,7 @@ header {
     width: 100%;
     height: 250px;
     object-fit: cover;
-    background: var(--light-green);
+    background: var(--light-brown);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -525,7 +525,7 @@ header {
 }
 
 .product-category {
-    color: var(--primary-green);
+    color: var(--primary-brown);
     font-size: 0.85rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
@@ -555,17 +555,17 @@ header {
     align-items: center;
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 1px solid var(--light-green);
+    border-top: 1px solid var(--light-brown);
 }
 
 .product-price {
     font-size: 1.5rem;
-    color: var(--primary-green);
+    color: var(--primary-brown);
     font-weight: bold;
 }
 
 .btn-detail {
-    background: var(--primary-green);
+    background: var(--primary-brown);
     color: var(--white);
     padding: 0.6rem 1.5rem;
     border-radius: 25px;
@@ -577,7 +577,7 @@ header {
 }
 
 .btn-detail:hover {
-    background: var(--dark-green);
+    background: var(--dark-brown);
     transform: scale(1.05);
 }
 
@@ -587,7 +587,7 @@ header {
 }
 
 .btn-see-more {
-    background: var(--primary-green);
+    background: var(--primary-brown);
     color: var(--white);
     padding: 1rem 3rem;
     border-radius: 30px;
@@ -596,12 +596,12 @@ header {
     font-size: 1.1rem;
     transition: all 0.3s ease;
     display: inline-block;
-    border: 2px solid var(--primary-green);
+    border: 2px solid var(--primary-brown);
 }
 
 .btn-see-more:hover {
     background: transparent;
-    color: var(--primary-green);
+    color: var(--primary-brown);
     transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
 }
@@ -611,7 +611,7 @@ header {
    ==================================== */
 
 footer {
-    background: linear-gradient(135deg, var(--dark-green), #047857);
+    background: linear-gradient(135deg, var(--dark-brown), #3e1f07);
     color: var(--white);
     padding: 3rem 5% 1rem;
 }
@@ -661,7 +661,7 @@ footer {
         left: -100%;
         top: 70px;
         flex-direction: column;
-        background: var(--primary-green);
+        background: var(--primary-brown);
         width: 100%;
         text-align: center;
         transition: 0.3s;

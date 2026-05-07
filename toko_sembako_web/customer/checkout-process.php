@@ -19,7 +19,7 @@ $id_pelanggan = 1;
 $id_user = 1;
 
 $tanggal = date('Y-m-d');
-$waktu   = date('H:i:s');
+$waktu  = date('H:i:s');
 $kode_transaksi = 'TRX' . date('YmdHis');
 
 // hitung total item dan subtotal
